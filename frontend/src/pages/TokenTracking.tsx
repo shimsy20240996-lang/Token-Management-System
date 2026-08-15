@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { io } from 'socket.io-client';
 import { Loader2, Download } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import { QRCodeCanvas } from 'qrcode.react';
 import { trackToken } from '../services/api';
 
@@ -35,23 +35,18 @@ export default function TokenTracking() {
     if (!ticketRef.current) return;
     
     try {
-      const canvas = await html2canvas(ticketRef.current, {
-        scale: 2, // Higher resolution
-        backgroundColor: '#ffffff',
-        useCORS: true,
+      const dataUrl = await toPng(ticketRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: '#ffffff'
       });
       
-      canvas.toBlob((blob) => {
-        if (!blob) throw new Error('Canvas is empty');
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `SmartQueue-Token-${tokenNumber}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }, 'image/png');
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `SmartQueue-Token-${tokenNumber}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error: any) {
       console.error('Error generating ticket image:', error);
       alert('Failed to download ticket: ' + (error.message || error));
