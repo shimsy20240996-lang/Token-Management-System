@@ -1,9 +1,44 @@
 import { prisma } from '../db';
+import twilio from 'twilio';
 
 export class SmsService {
   static async sendTokenSms(customerId: string, phoneNumber: string, message: string, tokenId?: string) {
-    console.log(`\n[SMS MOCK] Sending to: ${phoneNumber}`);
-    console.log(`[SMS MOCK] Message: \n${message}\n`);
+    console.log(`\n[MESSAGE] Sending to: ${phoneNumber}`);
+    console.log(`[MESSAGE] Content: \n${message}\n`);
+
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    const fromWhatsApp = process.env.TWILIO_WHATSAPP_NUMBER; // e.g. 'whatsapp:+14155238886'
+
+    let status = 'LOGGED';
+    let provider = 'MOCK';
+
+    if (accountSid && authToken && fromWhatsApp) {
+      try {
+        const client = twilio(accountSid, authToken);
+        
+        let formattedToNumber = phoneNumber.trim();
+        if (formattedToNumber.startsWith('0')) {
+          formattedToNumber = '+94' + formattedToNumber.substring(1);
+        } else if (!formattedToNumber.startsWith('+')) {
+          formattedToNumber = '+' + formattedToNumber;
+        }
+
+        await client.messages.create({
+          body: message,
+          from: fromWhatsApp,
+          to: `whatsapp:${formattedToNumber}`
+        });
+
+        status = 'SENT';
+        provider = 'TWILIO_WHATSAPP';
+        console.log('[TWILIO] WhatsApp message sent successfully!');
+      } catch (error) {
+        console.error('[TWILIO] Error sending WhatsApp message:', error);
+        status = 'FAILED';
+        provider = 'TWILIO_WHATSAPP';
+      }
+    }
 
     // Log to DB
     await prisma.smsLog.create({
@@ -12,8 +47,8 @@ export class SmsService {
         tokenId,
         phoneNumber,
         message,
-        status: 'SENT',
-        provider: 'MOCK'
+        status,
+        provider
       }
     });
   }
