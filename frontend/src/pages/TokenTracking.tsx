@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { io } from 'socket.io-client';
 import { Loader2, Download } from 'lucide-react';
 import html2canvas from 'html2canvas';
-import { QRCodeSVG } from 'qrcode.react';
+import { QRCodeCanvas } from 'qrcode.react';
 import { trackToken } from '../services/api';
 
 const socket = io();
@@ -52,9 +52,9 @@ export default function TokenTracking() {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
       }, 'image/png');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating ticket image:', error);
-      alert('Failed to download ticket. Please try again.');
+      alert('Failed to download ticket: ' + (error.message || error));
     }
   };
 
@@ -113,7 +113,7 @@ export default function TokenTracking() {
             <div className="flex flex-col items-center justify-center bg-slate-50 p-6 rounded-2xl border border-slate-100">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Scan for Live Updates</p>
               <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
-                <QRCodeSVG value={trackingUrl} size={120} level="H" />
+                <QRCodeCanvas value={trackingUrl} size={120} level="H" />
               </div>
             </div>
             
