@@ -6,7 +6,7 @@ import { io } from 'socket.io-client';
 import { Loader2 } from 'lucide-react';
 import { trackToken } from '../services/api';
 
-const socket = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000');
+const socket = io();
 
 export default function TokenTracking() {
   const { tokenNumber } = useParams<{ tokenNumber: string }>();

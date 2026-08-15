@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 
-const socket = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000');
+const socket = io();
 
 export default function QueueDisplay() {
   const [calledToken, setCalledToken] = useState<any>(null);
