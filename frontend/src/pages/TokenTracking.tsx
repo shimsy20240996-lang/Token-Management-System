@@ -1,9 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { io } from 'socket.io-client';
-import { Loader2, Download } from 'lucide-react';
+import { Loader2, Download, CheckCircle2 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { QRCodeCanvas } from 'qrcode.react';
 import { trackToken } from '../services/api';
@@ -14,6 +14,7 @@ export default function TokenTracking() {
   const { tokenNumber } = useParams<{ tokenNumber: string }>();
   const { t } = useTranslation();
   const ticketRef = useRef<HTMLDivElement>(null);
+  const [downloadState, setDownloadState] = useState<'idle' | 'downloading' | 'success'>('idle');
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['track', tokenNumber],
@@ -32,13 +33,15 @@ export default function TokenTracking() {
   }, [refetch]);
 
   const handleDownloadTicket = async () => {
-    if (!ticketRef.current) return;
+    if (!ticketRef.current || downloadState === 'downloading') return;
+    
+    setDownloadState('downloading');
     
     try {
       const dataUrl = await toPng(ticketRef.current, {
         cacheBust: true,
         pixelRatio: 2,
-        backgroundColor: '#ffffff'
+        backgroundColor: 'transparent' // Let the ticket design be standalone
       });
       
       const link = document.createElement('a');
@@ -47,24 +50,29 @@ export default function TokenTracking() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      
+      setDownloadState('success');
+      setTimeout(() => setDownloadState('idle'), 2000);
+      
     } catch (error: any) {
       console.error('Error generating ticket image:', error);
       alert('Failed to download ticket: ' + (error.message || error));
+      setDownloadState('idle');
     }
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-12 h-12 animate-spin text-[#2563EB]" />
       </div>
     );
   }
 
   if (!data || !data.token) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
-        <div className="text-2xl font-bold text-slate-800">Token not found</div>
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <div className="text-2xl font-bold text-[#17233A]">Token not found</div>
       </div>
     );
   }
@@ -72,96 +80,151 @@ export default function TokenTracking() {
   const { token, peopleAhead, currentlyServing } = data;
   const isServing = token.status === 'SERVING';
   const isCompleted = token.status === 'COMPLETED';
-
-  // The URL to return to this specific tracking page
   const trackingUrl = window.location.href;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center p-6 pt-12 pb-24">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen flex flex-col items-center p-4 md:p-6 pt-8 pb-24 animate-fade-in">
+      <div className="w-full max-w-[420px] mx-auto animate-slide-up">
         
-        {/* Ticket Container (This exact div will be converted to an image) */}
+        {/* Main Ticket */}
         <div 
           ref={ticketRef}
-          className="bg-white rounded-3xl shadow-xl overflow-hidden mb-6 border-t-8 border-blue-600 relative"
+          className="bg-white rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.08)] overflow-hidden relative mb-6"
         >
-          {/* Header Pattern */}
-          <div className="absolute top-0 left-0 right-0 h-4 bg-blue-600 opacity-10"></div>
+          {/* Top Blue Accent */}
+          <div className="h-2 w-full bg-[#2563EB]"></div>
           
-          <div className="p-8 pb-10 text-center">
-            <h1 className="text-xl font-bold text-slate-800 mb-6">{t('Smart Queue Management')}</h1>
+          <div className="p-8 pb-10 text-center relative">
             
-            <h2 className="text-sm font-bold tracking-widest text-slate-400 uppercase mb-2">{t('Your Token')}</h2>
-            <div className="text-6xl font-black text-slate-800 mb-4">{token.tokenNumber}</div>
+            {/* Header */}
+            <h1 className="text-xl font-bold tracking-[0.2em] text-[#17233A] uppercase mb-10">
+              {t('Smart Queue')}
+            </h1>
             
-            <div className="inline-block px-4 py-1 rounded-full text-sm font-semibold mb-6 bg-blue-50 text-blue-700">
+            <p className="text-xs font-bold tracking-widest text-[#64748B] uppercase mb-2">
+              {t('Your Token')}
+            </p>
+            
+            {/* Massive Token Number */}
+            <div className="text-[clamp(4rem,12vw,6rem)] leading-none font-extrabold text-[#17233A] mb-4 tracking-tighter" style={{ textShadow: '0 4px 20px rgba(37,99,235,0.15)' }}>
+              {token.tokenNumber}
+            </div>
+            
+            <div className="inline-block px-5 py-2 rounded-full text-sm font-bold bg-[#F5F8FC] text-[#2563EB] mb-8">
               {token.service.name}
             </div>
 
-            <div className="mb-8 px-6 text-sm text-slate-500">
-              Customer: <span className="font-semibold text-slate-700">{token.customer.name}</span>
-              <br />
-              Issued: {new Date(token.createdAt).toLocaleTimeString()}
+            <div className="space-y-1 mb-8 text-sm">
+              <div className="flex justify-between items-center text-[#64748B]">
+                <span>Customer:</span>
+                <span className="font-bold text-[#17233A]">{token.customer.name}</span>
+              </div>
+              <div className="flex justify-between items-center text-[#64748B]">
+                <span>Issued:</span>
+                <span className="font-bold text-[#17233A]">
+                  {new Date(token.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+            </div>
+
+            {/* Divider with ticket cutouts */}
+            <div className="relative mt-8 mb-8">
+              <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                <div className="w-full border-t-[3px] border-dashed border-[#F5F8FC]"></div>
+              </div>
+              {/* Left Cutout */}
+              <div className="absolute -left-12 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#F5F8FC] rounded-full shadow-inner"></div>
+              {/* Right Cutout */}
+              <div className="absolute -right-12 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#F5F8FC] rounded-full shadow-inner"></div>
             </div>
 
             {/* QR Code Section */}
-            <div className="flex flex-col items-center justify-center bg-slate-50 p-6 rounded-2xl border border-slate-100">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Scan for Live Updates</p>
-              <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
-                <QRCodeCanvas value={trackingUrl} size={120} level="H" />
+            <div className="flex flex-col items-center justify-center p-6 rounded-[20px] bg-[#F5F8FC]">
+              <p className="text-xs font-bold text-[#64748B] uppercase tracking-[0.15em] mb-4">
+                Scan to track your token
+              </p>
+              <div className="bg-white p-4 rounded-[16px] shadow-sm mb-4">
+                <QRCodeCanvas value={trackingUrl} size={140} level="H" fgColor="#17233A" />
               </div>
+              <p className="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">
+                Live queue updates<br/>No app required
+              </p>
             </div>
             
-            {/* Dashed line for ticket effect */}
-            <div className="relative mt-8 mb-4">
-              <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                <div className="w-full border-t-2 border-dashed border-slate-200"></div>
-              </div>
-              <div className="absolute -left-10 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-50 rounded-full"></div>
-              <div className="absolute -right-10 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-50 rounded-full"></div>
-            </div>
-            
-            <div className="text-xs text-slate-400 mt-6 font-medium tracking-wide">
-              Please present this digital ticket when called.
-            </div>
+            <p className="text-xs text-[#64748B] mt-8 font-semibold uppercase tracking-widest opacity-60">
+              Please present when called.
+            </p>
           </div>
         </div>
 
-        {/* Action Buttons (Not included in the downloaded image) */}
+        {/* Live Status Region */}
         <div className="space-y-4 mb-8">
-          <button
-            onClick={handleDownloadTicket}
-            className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 rounded-xl text-lg transition-all flex items-center justify-center gap-2 shadow-lg"
-          >
-            <Download className="w-5 h-5" />
-            Download e-Ticket
-          </button>
+          {isServing ? (
+            <div className="bg-[#16A34A] rounded-[20px] p-6 text-center text-white shadow-[0_8px_30px_rgba(22,163,74,0.3)] animate-pulse">
+              <div className="text-sm font-bold uppercase tracking-widest mb-1">Live Now</div>
+              <div className="text-3xl font-black mb-2">It's your turn!</div>
+              <div className="font-medium opacity-90">Please proceed to {token.counter?.name}</div>
+            </div>
+          ) : isCompleted ? (
+            <div className="bg-white rounded-[20px] p-6 text-center shadow-sm border border-slate-100">
+              <div className="text-[#64748B] font-bold text-xl">Service Completed</div>
+              <div className="text-[#64748B] mt-1 text-sm">Thank you for visiting!</div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              {/* Currently Serving */}
+              <div className="bg-white rounded-[20px] p-5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] text-center relative overflow-hidden">
+                <div className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-2 flex items-center justify-center gap-1.5">
+                  <span className="w-1.5 h-1.5 bg-[#16A34A] rounded-full animate-pulse"></span>
+                  Currently Serving
+                </div>
+                {currentlyServing ? (
+                  <div className="text-2xl font-black text-[#17233A]">{currentlyServing.tokenNumber}</div>
+                ) : (
+                  <div className="text-sm font-semibold text-[#64748B] py-1">Waiting for service</div>
+                )}
+              </div>
+              
+              {/* People Ahead */}
+              <div className="bg-white rounded-[20px] p-5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] text-center">
+                <div className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-2">
+                  People Ahead
+                </div>
+                {peopleAhead === 0 ? (
+                  <div className="text-lg font-black text-[#16A34A] uppercase py-0.5">You're Next!</div>
+                ) : (
+                  <div className="text-2xl font-black text-[#2563EB]">{peopleAhead}</div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Live Status Alerts */}
-        {isServing ? (
-          <div className="p-5 bg-green-50 rounded-2xl border border-green-200 text-center shadow-sm animate-pulse">
-            <div className="text-green-800 font-black text-2xl mb-1">{t('Your Turn')}!</div>
-            <div className="text-green-700 font-medium text-lg">Please proceed to {token.counter?.name}</div>
-          </div>
-        ) : isCompleted ? (
-          <div className="p-5 bg-slate-100 rounded-2xl border border-slate-200 text-center shadow-sm">
-            <div className="text-slate-600 font-bold text-xl">Service Completed</div>
-            <div className="text-slate-500 mt-1">Thank you for visiting!</div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 text-center">
-              <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2">{t('Currently Serving')}</div>
-              <div className="text-2xl font-black text-slate-800">{currentlyServing?.tokenNumber || '-'}</div>
-            </div>
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 text-center">
-              <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2">{t('People Ahead')}</div>
-              <div className="text-2xl font-black text-blue-600">{peopleAhead}</div>
-            </div>
-          </div>
-        )}
-        
+        {/* Action Button */}
+        <button
+          onClick={handleDownloadTicket}
+          disabled={downloadState !== 'idle'}
+          className={`w-full font-bold py-5 rounded-[20px] text-lg transition-all duration-300 flex items-center justify-center gap-3 shadow-[0_8px_25px_-5px_rgba(23,35,58,0.3)]
+            ${downloadState === 'success' 
+              ? 'bg-[#16A34A] text-white scale-[0.98]' 
+              : 'bg-[#17233A] hover:bg-[#0f172a] hover:-translate-y-1 active:scale-[0.98] text-white'
+            }`}
+        >
+          {downloadState === 'downloading' ? (
+            <Loader2 className="w-6 h-6 animate-spin" />
+          ) : downloadState === 'success' ? (
+            <>
+              <CheckCircle2 className="w-6 h-6" />
+              TICKET DOWNLOADED
+            </>
+          ) : (
+            <>
+              <Download className="w-6 h-6" />
+              DOWNLOAD E-TICKET
+            </>
+          )}
+        </button>
+
       </div>
     </div>
   );
