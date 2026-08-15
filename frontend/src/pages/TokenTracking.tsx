@@ -41,11 +41,17 @@ export default function TokenTracking() {
         useCORS: true,
       });
       
-      const image = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = image;
-      link.download = `SmartQueue-Token-${tokenNumber}.png`;
-      link.click();
+      canvas.toBlob((blob) => {
+        if (!blob) throw new Error('Canvas is empty');
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `SmartQueue-Token-${tokenNumber}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 'image/png');
     } catch (error) {
       console.error('Error generating ticket image:', error);
       alert('Failed to download ticket. Please try again.');
