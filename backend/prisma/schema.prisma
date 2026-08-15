@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("STAFF") // ADMIN, MANAGER, STAFF
+  status       String   @default("ACTIVE") // ACTIVE, INACTIVE
+  createdAt    DateTime @default(now())
+}
+
+model Customer {
+  id          String   @id @default(uuid())
+  name        String
+  phoneNumber String
+  language    String   @default("en") // en, si, ta
+  createdAt   DateTime @default(now())
+  tokens      Token[]
+  smsLogs     SmsLog[]
+}
+
+model Service {
+  id        String    @id @default(uuid())
+  name      String
+  prefix    String
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  counters  Counter[]
+  tokens    Token[]
+}
+
+model Counter {
+  id        String   @id @default(uuid())
+  name      String
+  serviceId String
+  service   Service  @relation(fields: [serviceId], references: [id])
+  status    String   @default("OPEN") // OPEN, CLOSED
+  createdAt DateTime @default(now())
+  tokens    Token[]
+}
+
+model Token {
+  id           String    @id @default(uuid())
+  tokenNumber  String
+  customerId   String
+  customer     Customer  @relation(fields: [customerId], references: [id])
+  serviceId    String
+  service      Service   @relation(fields: [serviceId], references: [id])
+  counterId    String?
+  counter      Counter?  @relation(fields: [counterId], references: [id])
+  status       String    @default("WAITING") // WAITING, CALLED, SERVING, COMPLETED, SKIPPED, CANCELLED
+  createdAt    DateTime  @default(now())
+  calledAt     DateTime?
+  completedAt  DateTime?
+  cancelledAt  DateTime?
+}
+
+model SmsLog {
+  id          String   @id @default(uuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id])
+  tokenId     String?
+  phoneNumber String
+  message     String
+  status      String   // SENT, FAILED
+  provider    String   @default("MOCK")
+  sentAt      DateTime @default(now())
+}
+
+model Settings {
+  id                   String @id @default("global")
+  companyName          String @default("Smart Queue")
+  companyPhone         String @default("")
+  companyAddress       String @default("")
+  notifyAheadCount     Int    @default(3)
+}
