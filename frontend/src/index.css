@@ -33,8 +33,7 @@
 
 @layer base {
   body {
-    @apply antialiased text-slate-800;
-    background-color: #050B14; /* Deep dark background */
+    @apply antialiased text-slate-800 bg-transparent;
     min-height: 100vh;
   }
 }

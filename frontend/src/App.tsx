@@ -9,14 +9,17 @@ import QueueDisplay from './pages/QueueDisplay';
 import AdminLogin from './pages/admin/AdminLogin';
 import StaffDashboard from './pages/admin/StaffDashboard';
 
-import InteractiveBackground from './components/InteractiveBackground';
-
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <InteractiveBackground />
+      {/* Enterprise Telecom Brand Header Background */}
+      <div className="fixed top-0 left-0 right-0 h-[45vh] bg-gradient-to-br from-[#0b1f51] via-[#1d4ed8] to-[#06b6d4] -z-10" 
+           style={{ clipPath: 'polygon(0 0, 100% 0, 100% 80%, 0% 100%)' }}>
+      </div>
+      <div className="fixed inset-0 bg-slate-50 -z-20"></div>
+
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
