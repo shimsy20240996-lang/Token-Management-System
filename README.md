@@ -1,8 +1,8 @@
-# Multilingual Smart Token Management System
+# Enterprise Smart Queue Management System
 
-![Smart Queue Management](https://img.shields.io/badge/Status-Live-success) ![Tech Stack](https://img.shields.io/badge/Stack-React%20%7C%20Node.js%20%7C%20Socket.IO-blue)
+![Smart Queue Management](https://img.shields.io/badge/Status-Live-success) ![Tech Stack](https://img.shields.io/badge/Stack-React%20%7C%20Node.js%20%7C%20Socket.IO-blue) ![UI UX](https://img.shields.io/badge/UX-Enterprise%20Telecom-06b6d4)
 
-A modern, production-ready full-stack Queue Management System designed to eliminate physical waiting lines. Customers can take digital tokens in their preferred language (English, Sinhala, Tamil), track their queue position in real-time, and receive simulated SMS notifications.
+A modern, production-ready full-stack Queue Management System featuring an **Enterprise-grade Sri Lankan Telecom/Self-Service UI**. Designed for high-volume service centers (banks, telecom branches, hospitals), it eliminates physical waiting lines by providing a seamless, multilingual digital ticketing experience.
 
 **[🔴 Live Demo (Hosted on Render)](https://token-management-system-ed5l.onrender.com)**
 
@@ -10,12 +10,13 @@ A modern, production-ready full-stack Queue Management System designed to elimin
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
+* **💎 Premium Enterprise UI:** A pristine, high-contrast self-service kiosk interface inspired by top Sri Lankan telecom apps (Cyan to Deep Indigo gradients, crisp white floating cards, highly accessible typography).
 * **🌍 Multilingual Interface:** Instant seamless translation between English, Sinhala (සිංහල), and Tamil (தமிழ்) using `i18next`.
 * **⚡ Real-Time Architecture:** Powered by `Socket.IO`. When staff calls a token, the customer tracking pages and TV queue displays update instantly without page refreshes.
-* **🎫 Digital Token Generation:** Atomic database transactions guarantee unique token generation across different service categories (e.g., Customer Service, Cashier, Payments).
-* **📱 SMS Notification Abstraction:** Includes an `SmsService` layer. Currently set to 'Simulator Mode' for portfolio demonstration to avoid API charges, but can be connected to Twilio in 5 lines of code.
+* **🎫 Digital E-Ticket & QR Tracking:** Customers can generate a beautiful digital receipt, save it as a downloadable image (PNG), and scan a QR code to track their queue status live on their mobile devices without needing an app.
+* **📱 Twilio WhatsApp Integration:** Includes an `SmsService` configured for the Twilio WhatsApp Sandbox. Falls back gracefully to 'Simulator Mode' (console logging) if environment variables are not provided, ensuring uninterrupted operation.
 * **📺 TV Queue Display:** A dedicated `/display` route meant for large monitors in waiting areas, complete with Text-to-Speech audio announcements.
 * **🔐 Staff Dashboard:** Secure JWT-based authentication allowing staff to select their counter, view statistics, and call the next waiting customer.
 
@@ -25,26 +26,22 @@ A modern, production-ready full-stack Queue Management System designed to elimin
 
 **Frontend:**
 * React 19 + TypeScript
-* Vite
-* Tailwind CSS v4
-* React Router DOM
+* Vite & Tailwind CSS v4
+* React Router DOM & React Query
 * Socket.IO Client
-* React Query
 * i18next (Internationalization)
+* `html-to-image` & `qrcode.react` (E-Ticket generation)
 
 **Backend:**
-* Node.js + Express
-* TypeScript
-* Prisma ORM
-* SQLite (Easily swappable to PostgreSQL)
+* Node.js + Express (TypeScript)
+* Prisma ORM + SQLite (Easily swappable to PostgreSQL)
 * Socket.IO
 * JWT (JSON Web Tokens) & bcryptjs
+* Twilio SDK (WhatsApp messaging)
 
 ---
 
 ## 🚀 How to Run Locally
-
-If you want to run this application on your own machine:
 
 ### 1. Clone the repository
 ```bash
@@ -53,7 +50,7 @@ cd Token-Management-System
 ```
 
 ### 2. Quick Start (Windows)
-Run the provided build script which compiles and serves the entire application on a single port:
+Run the provided build script which compiles the React app and moves it to the backend public folder:
 ```bash
 .\build.bat
 ```
@@ -97,7 +94,7 @@ To test the staff dashboard locally or on the live demo, use the default seeded 
 
 ## 🐳 Docker Deployment
 
-This project includes a `Dockerfile` that uses multi-stage builds to compile the Vite frontend into static files, which are then served directly by the Express backend. This allows the entire full-stack application to be deployed as a single lightweight Docker container.
+This project includes a `Dockerfile` optimized for Render and similar PaaS providers. It utilizes a `node:20-slim` Debian-based image to ensure Prisma binaries function correctly. The multi-stage build compiles the Vite frontend and serves the entire full-stack application as a single lightweight container.
 
 ## 📝 License
 MIT License
