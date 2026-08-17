@@ -132,10 +132,10 @@ export default function TokenTracking() {
               <div className="absolute inset-0 flex items-center" aria-hidden="true">
                 <div className="w-full border-t-[3px] border-dashed border-[#1e2f4c]"></div>
               </div>
-              {/* Left Cutout - Should match global background #F5F8FC visually if possible, but actually transparent or background color */}
-              <div className="absolute -left-12 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#F5F8FC] rounded-full shadow-inner border-r border-[#1e2f4c]"></div>
+              {/* Left Cutout */}
+              <div className="absolute -left-12 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#050B14] rounded-full shadow-inner border-r border-[#1e2f4c]"></div>
               {/* Right Cutout */}
-              <div className="absolute -right-12 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#F5F8FC] rounded-full shadow-inner border-l border-[#1e2f4c]"></div>
+              <div className="absolute -right-12 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#050B14] rounded-full shadow-inner border-l border-[#1e2f4c]"></div>
             </div>
 
             {/* QR Code Section */}

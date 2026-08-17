@@ -9,11 +9,14 @@ import QueueDisplay from './pages/QueueDisplay';
 import AdminLogin from './pages/admin/AdminLogin';
 import StaffDashboard from './pages/admin/StaffDashboard';
 
+import InteractiveBackground from './components/InteractiveBackground';
+
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <InteractiveBackground />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />

@@ -48,10 +48,10 @@ export default function ServiceSelect() {
       
       {/* Full screen generating overlay */}
       {isGenerating && (
-        <div className="absolute inset-0 z-50 bg-[#F5F8FC]/90 backdrop-blur-sm flex flex-col items-center justify-center animate-fade-in">
+        <div className="absolute inset-0 z-50 bg-[#050B14]/80 backdrop-blur-md flex flex-col items-center justify-center animate-fade-in">
           <Loader2 className="w-16 h-16 text-[#2563EB] animate-spin mb-6" />
-          <h2 className="text-2xl font-bold text-[#17233A] mb-2">{t('Generating your token')}</h2>
-          <p className="text-[#64748B]">{t('Please wait a moment...')}</p>
+          <h2 className="text-2xl font-bold text-white mb-2">{t('Generating your token')}</h2>
+          <p className="text-[#94a3b8]">{t('Please wait a moment...')}</p>
         </div>
       )}
 
